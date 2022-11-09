@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPM_View", "GPM_View\GPM_View.csproj", "{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		App1|Any CPU = App1|Any CPU
+		App2|Any CPU = App2|Any CPU
+		App3|Any CPU = App3|Any CPU
+		App4|Any CPU = App4|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App1|Any CPU.ActiveCfg = App1|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App1|Any CPU.Build.0 = App1|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App2|Any CPU.ActiveCfg = App2|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App2|Any CPU.Build.0 = App2|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App3|Any CPU.ActiveCfg = App3|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App3|Any CPU.Build.0 = App3|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App4|Any CPU.ActiveCfg = App4|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.App4|Any CPU.Build.0 = App4|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{720786A2-4F4D-4DBB-A29B-8DFA8C9E5530}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {132F9BB2-93F6-4412-938A-0CF601551001}
+	EndGlobalSection
+EndGlobal
