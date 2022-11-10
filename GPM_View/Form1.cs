@@ -1,15 +1,19 @@
 ﻿using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using static System.Windows.Forms.LinkLabel;
 
 namespace GPM_View
 {
@@ -93,6 +97,7 @@ namespace GPM_View
                 });
                 st.IsBackground = true;
                 st.Start();
+                listThread.Add(st);
                 Thread.Sleep(1000);
             }
         }
@@ -133,7 +138,7 @@ namespace GPM_View
         List<string> list = new List<string>();
 
         string urlLogin = "https://accounts.google.com/signin/v2/identifier?service=lbc&passive=1209600&continue=https%3A%2F%2Fbusiness.google.com%2F%3FskipPagesList%3D1%26skipLandingPage%3Dtrue%26hl%3Den%26gmbsrc%3Dus-en-z-z-z-gmb-l-z-d~mhp-hom_sig-u&followup=https%3A%2F%2Fbusiness.google.com%2F%3FskipPagesList%3D1%26skipLandingPage%3Dtrue%26hl%3Den%26gmbsrc%3Dus-en-z-z-z-gmb-l-z-d~mhp-hom_sig-u&hl=en&flowName=GlifWebSignIn&flowEntry=ServiceLogin";
-
+        UndetectChromeDriver driver2 = null;
         void kichban2()
         {
             int dem_kb2 = 0;
@@ -148,7 +153,7 @@ namespace GPM_View
                 return;
             }
             account act = lstAccount[index];
-            UndetectChromeDriver driver = null;
+            driver2 = null;
             try
             {
                 addStatus(index, "starting");
@@ -191,7 +196,7 @@ namespace GPM_View
                 {
                     Monitor.Enter(temp, ref lockWasTaken);
                     addStatus(index, "đang mở profile");
-                    try { driver = sts.openProfile(id_profile, index); }
+                    try { driver2 = sts.openProfile(id_profile, index); }
                     catch
                     {
                         addStatus(index, "Lỗi mở profile");
@@ -212,21 +217,21 @@ namespace GPM_View
                     Thread.Sleep(2000);
                 }
                 addStatus(index, "truy cập google");
-                try { driver.Get(urlLogin); } catch {
+                try { driver2.Get(urlLogin); } catch {
 
                     addStatus(index, "Lỗi truy cập google");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver2.Close();
+                    driver2.Dispose();
+                    driver2.Quit();
                     goto ketthuc;}
 
                 Thread.Sleep(2000);
                
-                if (driver.Url.Contains("business.google.com/create/new"))
+                if (driver2.Url.Contains("business.google.com/create/new"))
                 {
                     goto searchz;
                 }
-                login st = new login(driver, act); int demnha = 0;
+                login st = new login(driver2, act); int demnha = 0;
                 string Error = string.Empty;
             lainha:
                 if (st.Nanial(urlLogin))
@@ -239,9 +244,9 @@ namespace GPM_View
                             if (demnha == 7)
                             {
                                 addStatus(index, "Lỗi captcha !");
-                                driver.Close();
-                                driver.Dispose();
-                                driver.Quit();
+                                driver2.Close();
+                                driver2.Dispose();
+                                driver2.Quit();
                                 goto ketthuc;
                             }
                             goto lainha;
@@ -253,64 +258,77 @@ namespace GPM_View
                 Thread.Sleep(TimeSpan.FromSeconds(3));
                 //create account 
                 addStatus(index, "Đã login mail !");
-                clickDeSau(driver); Thread.Sleep(TimeSpan.FromSeconds(5));
-                if (driver.Url.Contains("inoptions/recovery-options-collection"))
+                clickDeSau(driver2); Thread.Sleep(TimeSpan.FromSeconds(5));
+                if (driver2.Url.Contains("inoptions/recovery-options-collection"))
                 {
-                    driver.Navigate().GoToUrl(urlLogin);
+                    driver2.Navigate().GoToUrl(urlLogin);
                     Thread.Sleep(TimeSpan.FromSeconds(5));
                 }
-                if (driver.Url.Contains("om/signin/v2/challenge/iap") || (driver.Url.Contains("gle.com/signin/rejected")))
+                if (driver2.Url.Contains("om/signin/v2/challenge/iap") || (driver2.Url.Contains("gle.com/signin/rejected")))
                 {
                     saveError(act, "Very phone");
                     addStatus(index, "very phone !");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver2.Close();
+                    driver2.Dispose();
+                    driver2.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains(".com/interstitials/birthday") || (driver.Url.Contains("ogle.com/web/chip")) || (driver.Url.Contains("/info/unknownerror")))
+                if (driver2.Url.Contains(".com/interstitials/birthday") || (driver2.Url.Contains("ogle.com/web/chip")) || (driver2.Url.Contains("/info/unknownerror")))
                 {
                     addStatus(index, "Vui lòng thêm ngày sinh");
-                    addbirthday(driver);
+                    addbirthday(driver2);
                 }
-                if ((driver.Url.Contains("m/signin/v2/identifier")) || (driver.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver.Url.Contains("m/signin/v2/disabled/explanation")))
+                if ((driver2.Url.Contains("m/signin/v2/identifier")) || (driver2.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver2.Url.Contains("m/signin/v2/disabled/explanation")))
                 {
                     saveError(act, "Đăng nhập không thành công!");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver2.Close();
+                    driver2.Dispose();
+                    driver2.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains("ogle.com/web/chip"))
+                if (driver2.Url.Contains("ogle.com/web/chip"))
                 {
-                    addbirthday(driver);
+                    addbirthday(driver2);
                 }
             searchz:
-                if (driver.Url.Contains("/signin/v2/challenge/pwd"))
+                if (driver2.Url.Contains("/signin/v2/challenge/pwd"))
                 {
                     saveError(act, "Đăng nhập không thành công");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver2.Close();
+                    driver2.Dispose();
+                    driver2.Quit();
                     goto ketthuc;
                 }
                 else
                 {
-                    acYoutube active = new acYoutube(driver);
+                    acYoutube active = new acYoutube(driver2);
                     active.gotoHome();
                     Thread.Sleep(2000);
                 vireyt:
                     try
                     { 
-                        IJavaScriptExecutor executorUseData = driver;
+                        IJavaScriptExecutor executorUseData = driver2;
                         string name = txtKeyword.Text;
                         addStatus(index, "Tìm kiếm theo key " + name);
                         active.searchKeyword(name);
                         Thread.Sleep(TimeSpan.FromSeconds(4));
-
-                        var items = driver.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
+                        try
+                        {
+                            var wait = new WebDriverWait(driver1, TimeSpan.FromSeconds(5));
+                            var myElement = wait.Until(x => x.FindElement(By.XPath("//ytd-video-renderer//ytd-thumbnail//a")));
+                        }
+                        catch
+                        {
+                            addStatus(index, "lỗi load trang youtube");
+                            driver2.Close();
+                            driver2.Dispose();
+                            driver2.Quit();
+                        }
+                       
+                        var items = driver2.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
+                        
                         foreach (var item in items)
                         {
                             string urlVideo = item.GetAttribute("href");
@@ -328,10 +346,15 @@ namespace GPM_View
                         {
                             if (i % 50 == 0)
                             {
-                                driver.Navigate().Refresh();
+                                driver2.Navigate().Refresh();
                                 Thread.Sleep(2000);
                             }
                             timevideo = active.getTimeVideo();
+                            while (timevideo < 300) // time video < 300 (s) tuc la co quang cao ngay dau
+                            {
+                                Thread.Sleep(TimeSpan.FromSeconds(60));
+                                timevideo = active.getTimeVideo();
+                            }
                             if (timevideo != 0)
                             {
                                 break;
@@ -342,18 +365,18 @@ namespace GPM_View
                         Thread.Sleep(TimeSpan.FromSeconds(30));
                         addStatus(index, "Reset video ve 0");
                         // Khởi tạo đối tượng thuộc Actions class
-                        Actions action = new Actions(driver);
+                        Actions action = new Actions(driver2);
 
                         action.KeyDown(OpenQA.Selenium.Keys.NumberPad0);
 
                         action.SendKeys(OpenQA.Selenium.Keys.NumberPad0).Perform();
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
+                        driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
                         Thread.Sleep(TimeSpan.FromSeconds(5));
 
-                        int rand = rand = random.Next(10, 15);
+                        int rand = rand = random.Next(3, 6);
                         int sleepTime = rand * timevideo / 100;
                         addStatus(index, "Chuyen video sau : " + sleepTime + " s");
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
+                        driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
                         Thread.Sleep(TimeSpan.FromSeconds(10));
 
                         //Sleep 1min
@@ -371,22 +394,22 @@ namespace GPM_View
                                 if (j == sleepCount - 1)
                                 {
                                     addStatus(index, sleepCountDiv.ToString());
-                                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
+                                    driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
                                     Thread.Sleep(TimeSpan.FromSeconds(sleepCountDiv));
                                 }
                                 else
                                 {
                                     addStatus(index, "đang xem video mồi");
-                                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
+                                    driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
                                     Thread.Sleep(TimeSpan.FromMinutes(1));
                                     if ((j + 1) % 20 == 0)
                                     {
                                         int x = 100;
-                                        driver.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                        driver2.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
+                                        driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                         Thread.Sleep(TimeSpan.FromSeconds(2));
                                         addStatus(index, "2s");
-                                        driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                        driver2.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
                                     }
 
                                 }
@@ -394,7 +417,7 @@ namespace GPM_View
                         }
                         else
                         {
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
+                            driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
                             Thread.Sleep(TimeSpan.FromSeconds(sleepTime));
                         }
                       
@@ -402,34 +425,43 @@ namespace GPM_View
 
                         addStatus(index, "Click Tim PLL");
 
-                        driver.FindElement(By.XPath("//a[@class='yt-simple-endpoint style-scope ytd-video-owner-renderer']")).Click();
+                        driver2.FindElement(By.XPath("//a[@class='yt-simple-endpoint style-scope ytd-video-owner-renderer']")).Click();
 
                         Thread.Sleep(10000);
                         
                         //
-                        driver.FindElement(By.XPath("//*[@id='tabsContent']/tp-yt-paper-tab[3]")).Click();
+                        driver2.FindElement(By.XPath("//*[@id='tabsContent']/tp-yt-paper-tab[3]")).Click();
 
                         Thread.Sleep(10000);
-                        int str = Convert.ToInt32(driver.ExecuteScript("var t = document.getElementsByClassName('ytd-playlist-thumbnail').length; return t;"));
+                        int str = Convert.ToInt32(driver2.ExecuteScript("var t = document.getElementsByClassName('ytd-playlist-thumbnail').length; return t;"));
                         if (str > 0)
                         {
                             int t = random.Next(0, str);
-                            driver.ExecuteScript("document.getElementsByClassName('ytd-playlist-thumbnail')[" + t + "].click()");
+                            driver2.ExecuteScript("document.getElementsByClassName('ytd-playlist-thumbnail')[" + t + "].click()");
                         }
                         else
                         {
-                            driver.FindElement(By.XPath("//*[@id='tabsContent']/tp-yt-paper-tab[4]")).Click();
+                            driver2.FindElement(By.XPath("//*[@id='tabsContent']/tp-yt-paper-tab[4]")).Click();
                             Thread.Sleep(10000);
-                            str = Convert.ToInt32(driver.ExecuteScript("var t = document.getElementsByClassName('ytd-playlist-thumbnail').length; return t;"));
+                            str = Convert.ToInt32(driver2.ExecuteScript("var t = document.getElementsByClassName('ytd-playlist-thumbnail').length; return t;"));
                             int t = random.Next(0, str);
-                            driver.ExecuteScript("document.getElementsByClassName('ytd-playlist-thumbnail')[" + t + "].click()");
+                            driver2.ExecuteScript("document.getElementsByClassName('ytd-playlist-thumbnail')[" + t + "].click()");
                         }
 
                         Thread.Sleep(10000);
                         int videoNext = 0;
                        for(int i = 0; i < 1000; i++) {
+
                             videoNext += 1;
                             bool is_comment = false;
+
+                            timevideo = active.getTimeVideo();
+
+                            while (timevideo < 300) // time video < 300 (s) tuc la co quang cao ngay dau
+                            {
+                                Thread.Sleep(TimeSpan.FromSeconds(60));
+                                timevideo = active.getTimeVideo();
+                            }
                             int rand_video_sub= random.Next(3, 8); // random khoang time sub channel
                             if (videoNext == rand_video_sub)
                             {
@@ -448,19 +480,19 @@ namespace GPM_View
 
                             addStatus(index, "Reset video ve 0");
                             // Khởi tạo đối tượng thuộc Actions class
-                            action = new Actions(driver);
+                            action = new Actions(driver2);
 
                             action.KeyDown(OpenQA.Selenium.Keys.NumberPad0);
 
                             action.SendKeys(OpenQA.Selenium.Keys.NumberPad0).Perform();
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
+                            driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
                             Thread.Sleep(TimeSpan.FromSeconds(5));
 
-                            rand = random.Next(35, 65);
+                            rand = random.Next(15, 30);
 
                             sleepTime = rand * timevideo / 100;
                             addStatus(index, "Chuyen video sau : " + sleepTime + " s");
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
+                            driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
                             Thread.Sleep(TimeSpan.FromSeconds(10));
 
                             //Sleep 1min
@@ -480,22 +512,22 @@ namespace GPM_View
                                     if (j == sleepCount - 1)
                                     {
                                         addStatus(index, sleepCountDiv.ToString());
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
+                                        driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
                                         Thread.Sleep(TimeSpan.FromSeconds(sleepCountDiv));
                                     }
                                     else
                                     {
                                         addStatus(index, "Đang xem video PLL");
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
+                                        driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
                                         Thread.Sleep(TimeSpan.FromMinutes(1));
                                         if ((j + 1) % 20 == 0)
                                         {
                                             int x = 100;
-                                            driver.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
-                                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                            driver2.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
+                                            driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                             Thread.Sleep(TimeSpan.FromSeconds(2));
                                             addStatus(index, "2s");
-                                            driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                            driver2.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
                                         }
                                         if (is_comment == false)
                                         {
@@ -532,7 +564,7 @@ namespace GPM_View
                             }
                             else
                             {
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
+                                driver2.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
                                 Thread.Sleep(TimeSpan.FromSeconds(sleepTime));
                             }
                             int tr = random.Next(0, 2);
@@ -543,7 +575,7 @@ namespace GPM_View
                             addStatus(index, "Click Video Next");
                             if (tr == 0)
                             {
-                                try { driver.ExecuteScript("document.getElementsByClassName('ytp-prev-button ytp-button')[0].click()"); }
+                                try { driver2.ExecuteScript("document.getElementsByClassName('ytp-prev-button ytp-button')[0].click()"); }
                                 catch
                                 {
                                     Thread.Sleep(1000);
@@ -553,7 +585,7 @@ namespace GPM_View
                             else
                             {
                                 //forword
-                                try { driver.ExecuteScript("document.getElementsByClassName('ytp-next-button ytp-button')[0].click()"); }
+                                try { driver2.ExecuteScript("document.getElementsByClassName('ytp-next-button ytp-button')[0].click()"); }
                                 catch
                                 {
                                     Thread.Sleep(1000);
@@ -563,9 +595,9 @@ namespace GPM_View
                             if(i == 999)
                             {
                                 addStatus(index, "xem hết pll");
-                                driver.Close();
-                                driver.Dispose();
-                                driver.Quit();
+                                driver2.Close();
+                                driver2.Dispose();
+                                driver2.Quit();
                                 return;
                             }
                         }
@@ -574,9 +606,9 @@ namespace GPM_View
                     catch (Exception ex)
                     {
                         addStatus(index, "timecout access youtube");
-                        driver.Close();
-                        driver.Dispose();
-                        driver.Quit();
+                        driver2.Close();
+                        driver2.Dispose();
+                        driver2.Quit();
                         goto ketthuc;
                     }
                 }
@@ -618,6 +650,7 @@ namespace GPM_View
         }
         private static readonly Object obj = new Object();
 
+        UndetectChromeDriver driver1 = null;
         private void kichban1()
         {
             int dem_kb1 = 0;
@@ -632,7 +665,7 @@ namespace GPM_View
                 return;
             }
             account act = lstAccount[index];
-            UndetectChromeDriver driver = null;
+            driver1 = null;
             try
             {
                 addStatus(index, "starting");
@@ -676,7 +709,7 @@ namespace GPM_View
                 {
                     Monitor.Enter(temp, ref lockWasTaken);
                     addStatus(index, "đang mở profile");
-                    try { driver = sts.openProfile(id_profile, index); }
+                    try { driver1 = sts.openProfile(id_profile, index); }
                     catch
                     {
                         addStatus(index, "Lỗi mở profile");
@@ -698,21 +731,21 @@ namespace GPM_View
                 }
                 addStatus(index, "truy cập google");
 
-                try { driver.Get(urlLogin); } 
+                try { driver1.Get(urlLogin); } 
                 
                 catch {
                     addStatus(index, "Lỗi truy cập google !");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver1.Close();
+                    driver1.Dispose();
+                    driver1.Quit();
                     goto ketthuc;
                 }
 
-                if (driver.Url.Contains("business.google.com/create/new"))
+                if (driver1.Url.Contains("business.google.com/create/new"))
                 {
                     goto searchz;
                 }
-                login st = new login(driver, act); int demnha = 0;
+                login st = new login(driver1, act); int demnha = 0;
                 string Error = string.Empty;
             lainha:
                 if (st.Nanial(urlLogin))
@@ -725,9 +758,9 @@ namespace GPM_View
                             if (demnha == 7)
                             {
                                 addStatus(index, "Lỗi captcha !");
-                                driver.Close();
-                                driver.Dispose();
-                                driver.Quit();
+                                driver1.Close();
+                                driver1.Dispose();
+                                driver1.Quit();
                                 goto ketthuc;
                             }
                             goto lainha;
@@ -739,64 +772,77 @@ namespace GPM_View
                 Thread.Sleep(TimeSpan.FromSeconds(3));
 
                 addStatus(index, "Đã login mail !");
-                clickDeSau(driver); Thread.Sleep(TimeSpan.FromSeconds(5));
-                if (driver.Url.Contains("inoptions/recovery-options-collection"))
+                clickDeSau(driver1); Thread.Sleep(TimeSpan.FromSeconds(5));
+                if (driver1.Url.Contains("inoptions/recovery-options-collection"))
                 {
-                    driver.Navigate().GoToUrl(urlLogin);
+                    driver1.Navigate().GoToUrl(urlLogin);
                     Thread.Sleep(TimeSpan.FromSeconds(5));
                 }
-                if (driver.Url.Contains("om/signin/v2/challenge/iap") || (driver.Url.Contains("gle.com/signin/rejected")))
+                if (driver1.Url.Contains("om/signin/v2/challenge/iap") || (driver1.Url.Contains("gle.com/signin/rejected")))
                 {
                     saveError(act, "Very phone");
                     addStatus(index, "very phone !");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver1.Close();
+                    driver1.Dispose();
+                    driver1.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains(".com/interstitials/birthday") || (driver.Url.Contains("ogle.com/web/chip")) || (driver.Url.Contains("/info/unknownerror")))
+                if (driver1.Url.Contains(".com/interstitials/birthday") || (driver1.Url.Contains("ogle.com/web/chip")) || (driver1.Url.Contains("/info/unknownerror")))
                 {
                     addStatus(index, "Vui lòng thêm ngày sinh");
-                    addbirthday(driver);
+                    addbirthday(driver1);
                 }
-                if ((driver.Url.Contains("m/signin/v2/identifier")) || (driver.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver.Url.Contains("m/signin/v2/disabled/explanation")))
+                if ((driver1.Url.Contains("m/signin/v2/identifier")) || (driver1.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver1.Url.Contains("m/signin/v2/disabled/explanation")))
                 {
                     saveError(act, "Đăng nhập không thành công!");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver1.Close();
+                    driver1.Dispose();
+                    driver1.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains("ogle.com/web/chip"))
+                if (driver1.Url.Contains("ogle.com/web/chip"))
                 {
-                    addbirthday(driver);
+                    addbirthday(driver1);
                 }
             searchz:
-                if (driver.Url.Contains("/signin/v2/challenge/pwd"))
+                if (driver1.Url.Contains("/signin/v2/challenge/pwd"))
                 {
                     saveError(act, "Đăng nhập không thành công");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver1.Close();
+                    driver1.Dispose();
+                    driver1.Quit();
                     goto ketthuc;
                 }
                 else
                 {
-                    acYoutube active = new acYoutube(driver);
+                    acYoutube active = new acYoutube(driver1);
                     active.gotoHome();
                     Thread.Sleep(2000);
                 vireyt:
                     try
                     {
-                        IJavaScriptExecutor executorUseData = driver;
+                        IJavaScriptExecutor executorUseData = driver1;
                         string name = txtKeyword.Text;
                         addStatus(index, "Tìm kiếm theo key " + name);
                         active.searchKeyword(name);
                         Thread.Sleep(TimeSpan.FromSeconds(4));
 
-                        var items = driver.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
+                        try
+                        {
+                            var wait = new WebDriverWait(driver1, TimeSpan.FromSeconds(5));
+                            var myElement = wait.Until(x => x.FindElement(By.XPath("//ytd-video-renderer//ytd-thumbnail//a")));
+                        }
+                        catch
+                        {
+                            addStatus(index, "lỗi load trang youtube");
+                            driver1.Close();
+                            driver1.Dispose();
+                            driver1.Quit();
+                        }
+                       
+                        var items = driver1.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
                         foreach (var item in items)
                         {
                             string urlVideo = item.GetAttribute("href");
@@ -807,60 +853,66 @@ namespace GPM_View
                             }
                         }
                         Thread.Sleep(TimeSpan.FromSeconds(2));
-                        countTime time = new countTime();
-
+                       
+                        int rand = random.Next(3, 6);
                         int timevideo = 0;
-                        for (int i = 0; i < 300; i++)
-                        {
-                            if (i % 50 == 0)
-                            {
-                                driver.Navigate().Refresh();
-                                Thread.Sleep(2000);
-                            }
-                            timevideo = active.getTimeVideo();
-                            if (timevideo != 0)
-                            {
-                                break;
-                            }
-                            Thread.Sleep(1500);
-                        }
-                        addStatus(index, "Time Video " + timevideo);
-                        Thread.Sleep(3000);
-                        time.reset();
-
-                        int rand = random.Next(35, 65);
-
                         for (int i = 0; i < iSoLanMoLink; i++)
                         {
                             bool is_comment = false;
-                            int rand_num_cmt = random.Next(2, 5); // random comment o moi lan click link
+                            int rand_num_cmt = random.Next(2, 5);
+                            countTime time = new countTime();
+                            
+                            for (int k = 0; k < 300; k++)
+                            {
+                                if (k % 50 == 0)
+                                {
+                                    driver1.Navigate().Refresh();
+                                    Thread.Sleep(2000);
+                                }
+                                timevideo = active.getTimeVideo();
+
+                                while (timevideo < 300) // time video < 300 (s) tuc la co quang cao ngay dau
+                                {
+                                    Thread.Sleep(TimeSpan.FromSeconds(60));
+                                    timevideo = active.getTimeVideo();
+                                }
+                                if (timevideo != 0)
+                                {
+                                    break;
+                                }
+                                Thread.Sleep(1500);
+                            }
+                            addStatus(index, "Time Video " + timevideo);
+                            Thread.Sleep(3000);
+                            time.reset();
+
+                            // random comment o moi lan click link
 
                             Thread.Sleep(TimeSpan.FromSeconds(30));
                             addStatus(index, "Reset video ve 0");
                             // Khởi tạo đối tượng thuộc Actions class
-                            Actions action = new Actions(driver);
+                            Actions action = new Actions(driver1);
 
                             action.KeyDown(OpenQA.Selenium.Keys.NumberPad0);
 
                             action.SendKeys(OpenQA.Selenium.Keys.NumberPad0).Perform();
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
+                            driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
                             Thread.Sleep(TimeSpan.FromSeconds(5));
 
                             if(i == 0)
                             {
-                                rand = random.Next(10,15);
+                                rand = random.Next(3,6);
                             }
                             else
                             {
-                                rand = random.Next(35, 65);
+                                rand = random.Next(15, 30);
                             }
                             int sleepTime = rand * timevideo / 100;
                             addStatus(index, "Chuyen video sau : " + sleepTime + " s");
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
+                            driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
                             Thread.Sleep(TimeSpan.FromSeconds(10));
                             if (sub.Checked)
                             {
-
                                 try { active.subVideo(); }
                                 catch
                                 {
@@ -880,7 +932,7 @@ namespace GPM_View
                                     if (j == sleepCount - 1)
                                     {
                                         addStatus(index, sleepCountDiv.ToString());
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
+                                        driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
                                         Thread.Sleep(TimeSpan.FromSeconds(sleepCountDiv));
                                     }
                                     else
@@ -890,16 +942,16 @@ namespace GPM_View
                                             addStatus(index, "đang xem video lần click thứ" + i);
                                         }
                                         
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
+                                        driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
                                         Thread.Sleep(TimeSpan.FromMinutes(1));
                                         if ((j + 1) % 20 == 0)
                                         {
                                             int x = 100;
-                                            driver.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
-                                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                            driver1.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
+                                            driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                             Thread.Sleep(TimeSpan.FromSeconds(2));
                                             addStatus(index, "2s");
-                                            driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                            driver1.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
 
                                         }
                                         if(is_comment == false)
@@ -933,49 +985,74 @@ namespace GPM_View
                             }
                             else
                             {
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
+                                driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
                                 Thread.Sleep(TimeSpan.FromSeconds(sleepTime));
 
                             }
                             if (i != iSoLanMoLink - 1)
                             {
                                 int x = 100;
-                                driver.ExecuteScript("window.scrollTo(100," + (x * 2 + ")"));
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                driver1.ExecuteScript("window.scrollTo(100," + (x * 2 + ")"));
+                                driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                 Thread.Sleep(TimeSpan.FromSeconds(2));
                                 addStatus(index, "2s");
-                                driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                driver1.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
 
                                 addStatus(index, "Sleep 5s");
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5 + 2);
+                                driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5 + 2);
                                 Thread.Sleep(TimeSpan.FromSeconds(5));
                                 addStatus(index, "Sleep 5s1");
                                 try
                                 {
-                                    driver.FindElement(By.XPath("/html/body/ytd-app/div[1]/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[2]/ytd-watch-metadata/div/div[3]/div[1]/div/ytd-text-inline-expander/div[1]/span[1]/yt-formatted-string/a[1]")).Click();
+                                    /* driver.FindElement(By.XPath("/html/body/ytd-app/div[1]/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[2]/ytd-watch-metadata/div/div[3]/div[1]/div/ytd-text-inline-expander/div[1]/span[1]/yt-formatted-string/a[1]")).Click();*/
+                                    var eleDes = driver1.FindElement(By.XPath("//div[@id='description']"));
+                                    executorUseData.ExecuteScript("arguments[0].click()", eleDes);
+                                    Thread.Sleep(2000);
+                                    string contentDes = driver1.FindElement(By.XPath("//div[@id='description']")).Text;
+                                    string[] lines = contentDes.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                                  
+                                    string linkDes = lines.FirstOrDefault(t => t.StartsWith("http", StringComparison.OrdinalIgnoreCase));
+
+                                    if (string.IsNullOrWhiteSpace(linkDes))
+                                    {
+                                        iSoLuongDangChay--;
+                                        addStatus(index, "Xong");
+                                        try
+                                        {
+                                            driver1.Close();
+                                            driver1.Quit();
+                                        }
+                                        catch
+                                        {
+                                            driver1.Navigate().GoToUrl(linkDes);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        addStatus(index, "Chạy link ở des: " + i);
+                                        driver1.Navigate().GoToUrl(linkDes);
+                                    }
                                 }
                                 catch (Exception e)
                                 {
                                     addStatus(index, "Sleep 5s1 ERROR" + e);
                                 }
                                 addStatus(index, "Sleep 5s2");
-
-                                addStatus(index, "click description");
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5 + 2);
+                                driver1.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5 + 2);
                                 Thread.Sleep(TimeSpan.FromSeconds(5));
                             }
                         }
                         addStatus(index, "Xong");
-                        driver.Close();
-                        driver.Dispose();
-                        driver.Quit();
+                        driver1.Close();
+                        driver1.Dispose();
+                        driver1.Quit();
                     }
                     catch (Exception ex) // catch 1
                     {
                         addStatus(index, "timeout access youtube ");
-                        driver.Close();
-                        driver.Dispose();
-                        driver.Quit();
+                        driver1.Close();
+                        driver1.Dispose();
+                        driver1.Quit();
                         goto ketthuc;
                     }
                 }
@@ -989,8 +1066,10 @@ namespace GPM_View
             return;
         }
 
+        UndetectChromeDriver driver3 = null;
         private void kichban3()
         {
+
             int dem_kb3 = 0;
             int index = numberRow;
             numberRow += 1;
@@ -1004,7 +1083,7 @@ namespace GPM_View
             }
             account act = lstAccount[index];
 
-            UndetectChromeDriver driver = null;
+            driver3 = null;
 
             try
             {
@@ -1050,7 +1129,7 @@ namespace GPM_View
                 {
                     Monitor.Enter(temp, ref lockWasTaken);
                     addStatus(index, "đang mở profile");
-                    try { driver = sts.openProfile(id_profile, index); }
+                    try { driver3 = sts.openProfile(id_profile, index); }
                     catch
                     {
                         addStatus(index, "Lỗi mở profile");
@@ -1072,22 +1151,22 @@ namespace GPM_View
                 }
                 addStatus(index, "truy cập google");
 
-                try { driver.Get(urlLogin); } 
+                try { driver3.Get(urlLogin); } 
 
                 catch {
                     addStatus(index, "Lỗi truy cập google !");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver3.Close();
+                    driver3.Dispose();
+                    driver3.Quit();
                     goto ketthuc;
                 }
                 Thread.Sleep(2000);
                 
-                if (driver.Url.Contains("business.google.com/create/new"))
+                if (driver3.Url.Contains("business.google.com/create/new"))
                 {
                     goto searchz;
                 }
-                login st = new login(driver, act); int demnha = 0;
+                login st = new login(driver3, act); int demnha = 0;
                 string Error = string.Empty;
             lainha:
                 if (st.Nanial(urlLogin))
@@ -1100,9 +1179,9 @@ namespace GPM_View
                             if (demnha == 7)
                             {
                                 addStatus(index, "Lỗi captcha !");
-                                driver.Close();
-                                driver.Dispose();
-                                driver.Quit();
+                                driver3.Close();
+                                driver3.Dispose();
+                                driver3.Quit();
                                 goto ketthuc;
                             }
                             goto lainha;
@@ -1114,64 +1193,77 @@ namespace GPM_View
                 Thread.Sleep(TimeSpan.FromSeconds(3));
 
                 addStatus(index, "Đã login mail !");
-                clickDeSau(driver); Thread.Sleep(TimeSpan.FromSeconds(5));
-                if (driver.Url.Contains("inoptions/recovery-options-collection"))
+                clickDeSau(driver3); Thread.Sleep(TimeSpan.FromSeconds(5));
+                if (driver3.Url.Contains("inoptions/recovery-options-collection"))
                 {
-                    driver.Navigate().GoToUrl(urlLogin);
+                    driver3.Navigate().GoToUrl(urlLogin);
                     Thread.Sleep(TimeSpan.FromSeconds(5));
                 }
-                if (driver.Url.Contains("om/signin/v2/challenge/iap") || (driver.Url.Contains("gle.com/signin/rejected")))
+                if (driver3.Url.Contains("om/signin/v2/challenge/iap") || (driver3.Url.Contains("gle.com/signin/rejected")))
                 {
                     saveError(act, "Very phone");
                     addStatus(index, "very phone !");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver3.Close();
+                    driver3.Dispose();
+                    driver3.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains(".com/interstitials/birthday") || (driver.Url.Contains("ogle.com/web/chip")) || (driver.Url.Contains("/info/unknownerror")))
+                if (driver3.Url.Contains(".com/interstitials/birthday") || (driver3.Url.Contains("ogle.com/web/chip")) || (driver3.Url.Contains("/info/unknownerror")))
                 {
                     addStatus(index, "Vui lòng thêm ngày sinh");
-                    addbirthday(driver);
+                    addbirthday(driver3);
                 }
-                if ((driver.Url.Contains("m/signin/v2/identifier")) || (driver.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver.Url.Contains("m/signin/v2/disabled/explanation")))
+                if ((driver3.Url.Contains("m/signin/v2/identifier")) || (driver3.Url.Contains("ccounts.google.com/speedbump/idvreenable")) || (driver3.Url.Contains("m/signin/v2/disabled/explanation")))
                 {
                     saveError(act, "Đăng nhập không thành công!");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver3.Close();
+                    driver3.Dispose();
+                    driver3.Quit();
                     goto ketthuc;
                 }
-                if (driver.Url.Contains("ogle.com/web/chip"))
+                if (driver3.Url.Contains("ogle.com/web/chip"))
                 {
-                    addbirthday(driver);
+                    addbirthday(driver3);
                 }
             searchz:
-                if (driver.Url.Contains("/signin/v2/challenge/pwd"))
+                if (driver3.Url.Contains("/signin/v2/challenge/pwd"))
                 {
                     saveError(act, "Đăng nhập không thành công");
                     addStatus(index, "Đăng nhập không thành công");
-                    driver.Close();
-                    driver.Dispose();
-                    driver.Quit();
+                    driver3.Close();
+                    driver3.Dispose();
+                    driver3.Quit();
                     goto ketthuc;
                 }
                 else
                 {
-                    acYoutube active = new acYoutube(driver);
+                    acYoutube active = new acYoutube(driver3);
                     active.gotoHome();
                     Thread.Sleep(2000);
                 vireyt:
                     try
                     {
-                        IJavaScriptExecutor executorUseData = driver;
+                        IJavaScriptExecutor executorUseData = driver3;
                         string name = txtKeyword.Text;
                         addStatus(index, "Tìm kiếm theo key " + name);
                         active.searchKeyword(name);
                         Thread.Sleep(TimeSpan.FromSeconds(4));
 
-                        var items = driver.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
+                        try
+                        {
+                            var wait = new WebDriverWait(driver1, TimeSpan.FromSeconds(5));
+                            var myElement = wait.Until(x => x.FindElement(By.XPath("//ytd-video-renderer//ytd-thumbnail//a")));
+                        }
+                        catch
+                        {
+                            addStatus(index, "lỗi load trang youtube");
+                            driver3.Close();
+                            driver3.Dispose();
+                            driver3.Quit();
+                        }
+
+                        var items = driver3.FindElements(By.XPath("//ytd-video-renderer//ytd-thumbnail//a"));
                         foreach (var item in items)
                         {
                             string urlVideo = item.GetAttribute("href");
@@ -1189,10 +1281,15 @@ namespace GPM_View
                         {
                             if (i % 50 == 0)
                             {
-                                driver.Navigate().Refresh();
+                                driver3.Navigate().Refresh();
                                 Thread.Sleep(2000);
                             }
                             timevideo = active.getTimeVideo();
+                            while (timevideo < 300) // time video < 300 (s) tuc la co quang cao ngay dau
+                            {
+                                Thread.Sleep(TimeSpan.FromSeconds(60));
+                                timevideo = active.getTimeVideo();
+                            }
                             if (timevideo != 0)
                             {
                                 break;
@@ -1203,22 +1300,20 @@ namespace GPM_View
                        
                         time.reset();
                
-                       
-
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
+                        driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
                         Thread.Sleep(TimeSpan.FromSeconds(30));
                         addStatus(index, "reset video time về 0");
 
-                        Actions action = new Actions(driver);
+                        Actions action = new Actions(driver3);
 
                         action.KeyDown(OpenQA.Selenium.Keys.NumberPad0);
 
                         action.SendKeys(OpenQA.Selenium.Keys.NumberPad0).Perform();
 
-                        int rand = random.Next(10, 15);
+                        int rand = random.Next(3, 6);
                         int sleepTime = rand * timevideo / 100;
                         addStatus(index, "Chuyen video sau : " + sleepTime + " s");
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
+                        driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
                         Thread.Sleep(TimeSpan.FromSeconds(10));
 
                         //Sleep 1min
@@ -1236,22 +1331,22 @@ namespace GPM_View
                                 if (j == sleepCount - 1)
                                 {
                                     addStatus(index, sleepCountDiv.ToString());
-                                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
+                                    driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
                                     Thread.Sleep(TimeSpan.FromSeconds(sleepCountDiv));
                                 }
                                 else
                                 {
                                     addStatus(index, "60s");
-                                    driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
+                                    driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
                                     Thread.Sleep(TimeSpan.FromMinutes(1));
                                     if ((j + 1) % 20 == 0)
                                     {
                                         int x = 100;
-                                        driver.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                        driver3.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
+                                        driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                         Thread.Sleep(TimeSpan.FromSeconds(2));
                                         addStatus(index, "2s");
-                                        driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                        driver3.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
 
                                     }
 
@@ -1260,13 +1355,42 @@ namespace GPM_View
                         }
                         else
                         {
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
+                            driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
                             Thread.Sleep(TimeSpan.FromSeconds(sleepTime));
 
                         }
                         Thread.Sleep(5000);
-                        driver.FindElement(By.XPath("/html/body/ytd-app/div[1]/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[2]/ytd-watch-metadata/div/div[3]/div[1]/div/ytd-text-inline-expander/div[1]/span[1]/yt-formatted-string/a[1]")).Click();
-                        addStatus(index, "Chuyển sang click PLL");
+                        //
+                        /*driver.FindElement(By.XPath("/html/body/ytd-app/div[1]/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[2]/ytd-watch-metadata/div/div[3]/div[1]/div/ytd-text-inline-expander/div[1]/span[1]/yt-formatted-string/a[1]")).Click();*/
+
+                        var eleDes = driver3.FindElement(By.XPath("//div[@id='description']"));
+                        executorUseData.ExecuteScript("arguments[0].click()", eleDes);
+                        Thread.Sleep(2000);
+                        string contentDes = driver3.FindElement(By.XPath("//div[@id='description']")).Text;
+                        string[] lines = contentDes.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+                        string linkDes = lines.FirstOrDefault(t => t.StartsWith("http", StringComparison.OrdinalIgnoreCase));
+
+                        if (string.IsNullOrWhiteSpace(linkDes))
+                        {
+                            iSoLuongDangChay--;
+                            addStatus(index, "Xong");
+                            try
+                            {
+                                driver3.Close();
+                                driver3.Quit();
+                                driver3.Dispose();
+                            }
+                            catch
+                            {
+                                driver3.Navigate().GoToUrl(linkDes);
+                            }
+                        }
+                        else
+                        {
+                            addStatus(index, "Chuyển sang click PLL");
+                            driver3.Navigate().GoToUrl(linkDes);
+                        }
                         Thread.Sleep(10000);
                         // xem pll 
                         int videoNext = 0;
@@ -1275,6 +1399,15 @@ namespace GPM_View
                         {
                             bool is_comment = false;
                             videoNext += 1;
+
+                            timevideo = active.getTimeVideo();
+
+                            while (timevideo < 300) // time video < 300 (s) tuc la co quang cao ngay dau
+                            {
+                                Thread.Sleep(TimeSpan.FromSeconds(60));
+                                timevideo = active.getTimeVideo();
+                            }
+
                             int rand_video_next = random.Next(3, 8);
                             if (videoNext == rand_video_next)
                             {
@@ -1289,19 +1422,19 @@ namespace GPM_View
                             }
                             addStatus(index, "Reset video ve 0");
                             // Khởi tạo đối tượng thuộc Actions class
-                            action = new Actions(driver);
+                            action = new Actions(driver3);
 
                             action.KeyDown(OpenQA.Selenium.Keys.NumberPad0);
 
                             action.SendKeys(OpenQA.Selenium.Keys.NumberPad0).Perform();
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
+                            driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(6);
                             Thread.Sleep(TimeSpan.FromSeconds(5));
 
-                            rand = random.Next(35, 65);
+                            rand = random.Next(15, 30);
 
                             sleepTime = rand * timevideo / 100;
                             addStatus(index, "Chuyen video sau : " + sleepTime + " s");
-                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
+                            driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(12);
                             Thread.Sleep(TimeSpan.FromSeconds(10));
 
                             //Sleep 1min
@@ -1320,22 +1453,22 @@ namespace GPM_View
                                     if (j == sleepCount - 1)
                                     {
                                         addStatus(index, sleepCountDiv.ToString());
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
+                                        driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2 - (j - 1) * 60);
                                         Thread.Sleep(TimeSpan.FromSeconds(sleepCountDiv));
                                     }
                                     else
                                     {
                                         addStatus(index, "60s");
-                                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
+                                        driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(1 * 60);
                                         Thread.Sleep(TimeSpan.FromMinutes(1));
                                         if ((j + 1) % 20 == 0)
                                         {
                                             int x = 100;
-                                            driver.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
-                                            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
+                                            driver3.ExecuteScript("window.scrollTo(100," + (x * j + ")"));
+                                            driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
                                             Thread.Sleep(TimeSpan.FromSeconds(2));
                                             addStatus(index, "2s");
-                                            driver.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
+                                            driver3.ExecuteScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
                                         }
                                         if (is_comment == false)
                                         {
@@ -1369,7 +1502,7 @@ namespace GPM_View
                             }
                             else
                             {
-                                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
+                                driver3.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(sleepTime + 2);
                                 Thread.Sleep(TimeSpan.FromSeconds(sleepTime));
                             }
                             int tr = random.Next(0, 2);
@@ -1379,7 +1512,7 @@ namespace GPM_View
                             }
                             if (tr == 0)
                             {
-                                try { driver.ExecuteScript("document.getElementsByClassName('ytp-prev-button ytp-button')[0].click()"); }
+                                try { driver3.ExecuteScript("document.getElementsByClassName('ytp-prev-button ytp-button')[0].click()"); }
                                 catch
                                 {
                                     Thread.Sleep(1000);
@@ -1389,7 +1522,7 @@ namespace GPM_View
                             else
                             {
                                 //forword
-                                try { driver.ExecuteScript("document.getElementsByClassName('ytp-next-button ytp-button')[0].click()"); }
+                                try { driver3.ExecuteScript("document.getElementsByClassName('ytp-next-button ytp-button')[0].click()"); }
                                 catch
                                 {
                                     Thread.Sleep(1000);
@@ -1399,9 +1532,9 @@ namespace GPM_View
                             if (i == 999)
                             {
                                 addStatus(index, "xem hết pll");
-                                driver.Close();
-                                driver.Dispose();
-                                driver.Quit();
+                                driver3.Close();
+                                driver3.Dispose();
+                                driver3.Quit();
                                 return;
                             }
                         }
@@ -1410,9 +1543,9 @@ namespace GPM_View
                     catch (Exception ex)
                     {
                         addStatus(index, "error time out access youtube");
-                        driver.Close();
-                        driver.Dispose();
-                        driver.Quit();
+                        driver3.Close();
+                        driver3.Dispose();
+                        driver3.Quit();
                         goto ketthuc;
                         
                     }
@@ -1451,6 +1584,7 @@ namespace GPM_View
             }
         }
         bool flag_stop = false;
+        List<Thread> listThread = new List<Thread>();
         void runNew(int indexKichBan)
         {
             Thread st = new Thread(() =>
@@ -1462,6 +1596,7 @@ namespace GPM_View
             });
             st.IsBackground = true;
             st.Start();
+            listThread.Add(st);
         }
         void clickGotit(UndetectChromeDriver driver)
         {
@@ -1494,10 +1629,15 @@ namespace GPM_View
         }
         List<link> lstLink;
 
-        private void btnStop_Click(object sender, EventArgs e)
+        private void btnStop_Click_1(object sender, EventArgs e)
         {
             flag_stop = true;
             clearchrome();
+            foreach(Thread t in listThread)
+            {
+                t.Abort();
+            }
+            listThread = new List<Thread>();
         }
         void clearchrome()
         {
@@ -1514,6 +1654,7 @@ namespace GPM_View
             }
 
             Process.Start("taskkill", "/F /IM gpmdriver.exe");
+            Process.Start("taskkill", "/F /IM chromedriver.exe");
 
             flag_view_dx = false;
             flag_view_dx = false;
@@ -1547,12 +1688,6 @@ namespace GPM_View
         {
 
         }
-
-        private void btnStop_Click_1(object sender, EventArgs e)
-        {
-            clearchrome();
-        }
-
         bool flag_view_dx = false;
         bool flag_view_pll = false;
         bool flag_viewPll_video = false;
@@ -1602,6 +1737,7 @@ namespace GPM_View
                 });
                 st.IsBackground = true;
                 st.Start();
+                listThread.Add(st);
             }
             else if(flag_view_pll == true)
             {
@@ -1611,6 +1747,7 @@ namespace GPM_View
                 });
                 st.IsBackground = true;
                 st.Start();
+                listThread.Add(st);
             }
             else if(flag_viewPll_video == true)
             {
@@ -1620,6 +1757,7 @@ namespace GPM_View
                 });
                 st.IsBackground = true;
                 st.Start();
+                listThread.Add(st);
             }
             else
             {
@@ -1632,5 +1770,7 @@ namespace GPM_View
         {
 
         }
-    }  
+       
+
     }
+}
